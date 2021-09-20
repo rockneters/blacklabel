@@ -1,8 +1,11 @@
 #!/bin/bash
+# ==================================================
 
+GitUser="rockneters"
+#wget https://github.com/${GitUser}/
 # initializing var
 export DEBIAN_FRONTEND=noninteractive
-MYIP=$(wget -qO- icanhazip.com);
+MYIP=$(wget -qO- ipinfo.io/ip);
 MYIP2="s/xxxxxxxxx/$MYIP/g";
 NET=$(ip -o $ANU -4 route show to default | awk '{print $5}');
 source /etc/os-release
@@ -12,13 +15,13 @@ ver=$VERSION_ID
 country=ID
 state=Indonesia
 locality=Indonesia
-organization=www.vpninjector.com
-organizationalunit=vpninjector
-commonname=zhang-zi
-email=admin@vpninjector.com
+organization=SL
+organizationalunit=SL
+commonname=0.0.0.0
+email=sulaiman.xl@facebook.com
 
 # simple password minimal
-wget -O /etc/pam.d/common-password "https://raw.githubusercontent.com/rockneters/blacklabel/main/password"
+wget -O /etc/pam.d/common-password "${GitUser}/module/password"
 chmod +x /etc/pam.d/common-password
 
 # go to root
@@ -59,40 +62,46 @@ systemctl start rc-local.service
 echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
 sed -i '$ i\echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6' /etc/rc.local
 
+# set repo
+sh -c 'echo "deb http://download.webmin.com/download/repository sarge contrib" > /etc/apt/sources.list.d/webmin.list'
+apt install gnupg gnupg1 gnupg2 -y
+wget http://www.webmin.com/jcameron-key.asc
+apt-key add jcameron-key.asc
+
 #update
 apt update -y
 apt upgrade -y
 apt dist-upgrade -y
-apt-get remove --purge ufw firewalld -y
-apt-get remove --purge exim4 -y
 
 # install wget and curl
 apt -y install wget curl
 
-# set time GMT +8
-ln -fs /usr/share/zoneinfo/Asia/Kuala_Lumpur /etc/localtime
+# set time GMT +7
+ln -fs /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
 
 # set locale
 sed -i 's/AcceptEnv/#AcceptEnv/g' /etc/ssh/sshd_config
 
 # install
-apt-get --reinstall --fix-missing install -y bzip2 gzip coreutils wget screen rsyslog iftop htop net-tools zip unzip wget net-tools curl nano sed screen gnupg gnupg1 bc apt-transport-https build-essential dirmngr libxml-parser-perl neofetch git lsof
+apt-get --reinstall --fix-missing install -y bzip2 gzip coreutils wget screen rsyslog iftop htop net-tools zip unzip wget net-tools curl nano sed screen gnupg gnupg1 bc apt-transport-https build-essential dirmngr libxml-parser-perl neofetch git
 echo "clear" >> .profile
 echo "neofetch" >> .profile
+echo "Auto Scrip by Rocknet Store | Jalingkut Trix" >> .profile
 
 # install webserver
 apt -y install nginx
 cd
 rm /etc/nginx/sites-enabled/default
 rm /etc/nginx/sites-available/default
-wget -O /etc/nginx/nginx.conf "nginx.conf"
+wget -O /etc/nginx/nginx.conf "${GitUser}/module/nginx.conf"
 mkdir -p /home/vps/public_html
-wget -O /etc/nginx/conf.d/vps.conf "https://raw.githubusercontent.com/rockneters/blacklabel/main/vps.conf"
+echo "<pre>Setup Mod By Rocknet Store</pre>" > /home/vps/public_html/index.html
+wget -O /etc/nginx/conf.d/vps.conf "${GitUser}/module/vps.conf"
 /etc/init.d/nginx restart
 
 # install badvpn
 cd
-wget -O /usr/bin/badvpn-udpgw "https://raw.githubusercontent.com/rockneters/blacklabel/main/badvpn-udpgw64"
+wget -O /usr/bin/badvpn-udpgw "https://github.com/rockneters/jancuk/main/module/badvpn-udpgw64"
 chmod +x /usr/bin/badvpn-udpgw
 sed -i '$ i\screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7100 --max-clients 500' /etc/rc.local
 sed -i '$ i\screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7200 --max-clients 500' /etc/rc.local
@@ -100,47 +109,47 @@ sed -i '$ i\screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7300 --max-c
 screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7100 --max-clients 500
 screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7200 --max-clients 500
 screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7300 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7400 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7500 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7600 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7700 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7800 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7900 --max-clients 500
 
+apt-get -y update
 # setting port ssh
-sed -i 's/Port 22/Port 22/g' /etc/ssh/sshd_config
+cd
+sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g'
+# /etc/ssh/sshd_config
+sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config
+sed -i '/Port 22/a Port 6967' /etc/ssh/sshd_config
+sed -i 's/#Port 22/Port 22/g' /etc/ssh/sshd_config
+/etc/init.d/ssh restart
 
+echo "===  install Dropbear ==="
 # install dropbear
-apt -y install dropbear
+apt-get -y install dropbear
 sed -i 's/NO_START=1/NO_START=0/g' /etc/default/dropbear
-sed -i 's/DROPBEAR_PORT=22/DROPBEAR_PORT=442/g' /etc/default/dropbear
-sed -i 's/DROPBEAR_EXTRA_ARGS=/DROPBEAR_EXTRA_ARGS="-p 77"/g' /etc/default/dropbear
+sed -i 's/DROPBEAR_PORT=22/DROPBEAR_PORT=44/g' /etc/default/dropbear
+sed -i 's/DROPBEAR_EXTRA_ARGS=/DROPBEAR_EXTRA_ARGS="-p 143 -p 50000 -p 109 -p 77 "/g' /etc/default/dropbear
 echo "/bin/false" >> /etc/shells
 echo "/usr/sbin/nologin" >> /etc/shells
+/etc/init.d/ssh restart
 /etc/init.d/dropbear restart
 
 # install squid
 cd
 apt -y install squid3
-wget -O /etc/squid/squid.conf "https://raw.githubusercontent.com/rockneters/blacklabel/main/squid3.conf"
+wget -O /etc/squid/squid.conf "${GitUser}/module/squid3.conf"
 sed -i $MYIP2 /etc/squid/squid.conf
 
-# setting vnstat
-apt -y install vnstat
-/etc/init.d/vnstat restart
-apt -y install libsqlite3-dev
-wget https://humdi.net/vnstat/vnstat-2.6.tar.gz
-tar zxvf vnstat-2.6.tar.gz
-cd vnstat-2.6
-./configure --prefix=/usr --sysconfdir=/etc && make && make install
-cd
-vnstat -u -i $NET
-sed -i 's/Interface "'""eth0""'"/Interface "'""$NET""'"/g' /etc/vnstat.conf
-chown vnstat:vnstat /var/lib/vnstat -R
+# setting dan install vnstat debian 9 64bit
+apt-get -y install vnstat
+systemctl start vnstat
 systemctl enable vnstat
-/etc/init.d/vnstat restart
-rm -f /root/vnstat-2.6.tar.gz
-rm -rf /root/vnstat-2.6
+chkconfig vnstat on
+chown -R vnstat:vnstat /var/lib/vnstat
+
+# install webmin
+apt install webmin -y
+sed -i 's/ssl=1/ssl=0/g' /etc/webmin/miniserv.conf
+/etc/init.d/webmin restart
+
 
 # install stunnel
 apt install stunnel4 -y
@@ -151,24 +160,42 @@ socket = a:SO_REUSEADDR=1
 socket = l:TCP_NODELAY=1
 socket = r:TCP_NODELAY=1
 
-[dropbear]
-accept = 443
+[ssldropbear]
+accept = 444
+connect = 127.0.0.1:44
+[ssldropbear]
+accept = 777
 connect = 127.0.0.1:77
-
+[slws]
+accept = 8443
+connect = 127.0.0.1:2096
+[openvpn]
+accept = 992
+connect = 127.0.0.1:1194
 END
 
-# make a certificate
+echo "=================  membuat Sertifikat OpenSSL ======================"
+echo "========================================================="
+#membuat sertifikat
+cd /etc/stunnel/
 openssl genrsa -out key.pem 2048
 openssl req -new -x509 -key key.pem -out cert.pem -days 1095 \
 -subj "/C=$country/ST=$state/L=$locality/O=$organization/OU=$organizationalunit/CN=$commonname/emailAddress=$email"
 cat key.pem cert.pem >> /etc/stunnel/stunnel.pem
-
+cd
 # konfigurasi stunnel
 sed -i 's/ENABLED=0/ENABLED=1/g' /etc/default/stunnel4
+cd
 /etc/init.d/stunnel4 restart
+cd
+apt-get -y install sslh
+#configurasi sslh
+wget -O /etc/default/sslh "rockneters/Betatest/master/debian9/sslh-conf"
+service sslh restart
+/etc/init.d/sslh restart
 
 #OpenVPN
-#wget https://raw.githubusercontent.com/rockneters/blacklabel/main/vpn.sh &&  chmod +x vpn.sh && ./vpn.sh
+wget ${GitUser}/module/install/vpn.sh &&  chmod +x vpn.sh && ./vpn.sh
 
 # install fail2ban
 apt -y install fail2ban
@@ -200,10 +227,18 @@ echo; echo 'Installation has completed.'
 echo 'Config file is at /usr/local/ddos/ddos.conf'
 echo 'Please send in your comments and/or suggestions to zaf@vsnl.com'
 
+# xml parser
+cd
+apt install -y libxml-parser-perl
+
 # banner /etc/issue.net
-wget -O /etc/issue.net "https://raw.githubusercontent.com/zahwanugrah/deenie/debian7/bannerssh"
+wget -O /etc/issue.net "${GitUser}/module/bannerssh.conf"
 echo "Banner /etc/issue.net" >>/etc/ssh/sshd_config
 sed -i 's@DROPBEAR_BANNER=""@DROPBEAR_BANNER="/etc/issue.net"@g' /etc/default/dropbear
+
+#install bbr dan optimasi kernel
+wget ${GitUser}/module/bbr.sh && chmod +x bbr.sh && ./bbr.sh
+wget ${GitUser}/module/set-br.sh && chmod +x set-br.sh && ./set-br.sh
 
 # blockir torrent
 iptables -A FORWARD -m string --string "get_peers" --algo bm -j DROP
@@ -222,81 +257,8 @@ iptables-restore -t < /etc/iptables.up.rules
 netfilter-persistent save
 netfilter-persistent reload
 
-# download script
-cd /usr/bin
-wget -O add-host "https://raw.githubusercontent.com/rockneters/blacklabel/main/add-host.sh"
-wget -O about "https://raw.githubusercontent.com/rockneters/blacklabel/main/about.sh"
-wget -O menu "https://raw.githubusercontent.com/rockneters/blacklabel/main//menu.sh"
-wget -O usernew "https://raw.githubusercontent.com/rockneters/blacklabel/main/usernew.sh"
-wget -O trial "https://raw.githubusercontent.com/rockneters/blacklabel/main//trial.sh"
-wget -O hapus "https://raw.githubusercontent.com/rockneters/blacklabel/main/hapus.sh"
-wget -O member "https://raw.githubusercontent.com/rockneters/blacklabel/main/member.sh"
-wget -O delete "https://raw.githubusercontent.com/rockneters/blacklabel/main/delete.sh"
-wget -O cek "https://raw.githubusercontent.com/rockneters/blacklabel/main/cek.sh"
-wget -O restart "https://raw.githubusercontent.com/rockneters/blacklabel/main/restart.sh"
-wget -O speedtest "https://raw.githubusercontent.com/rockneters/blacklabel/main/speedtest_cli.py"
-wget -O info "https://raw.githubusercontent.com/rockneters/blacklabel/main/info.sh"
-wget -O ram "https://raw.githubusercontent.com/rockneters/blacklabel/main/ram.sh"
-wget -O renew "https://raw.githubusercontent.com/rockneters/blacklabel/main/renew.sh"
-wget -O autokill "https://raw.githubusercontent.com/rockneters/blacklabel/main/autokill.sh"
-wget -O ceklim "https://raw.githubusercontent.com/rockneters/blacklabel/main/ceklim.sh"
-wget -O tendang "https://raw.githubusercontent.com/rockneters/blacklabel/main/tendang.sh"
-wget -O clear-log "https://raw.githubusercontent.com/rockneters/blacklabel/main/clear-log.sh"
-wget -O change-port "https://raw.githubusercontent.com/rockneters/blacklabel/main/change.sh"
-wget -O port-ovpn "https://raw.githubusercontent.com/rockneters/blacklabel/main/port-ovpn.sh"
-wget -O port-ssl "https://raw.githubusercontent.com/rockneters/blacklabel/main/port-ssl.sh"
-wget -O port-wg "https://raw.githubusercontent.com/rockneters/blacklabel/main/port-wg.sh"
-wget -O port-tr "https://raw.githubusercontent.com/rockneters/blacklabel/main/port-tr.sh"
-wget -O port-sstp "https://raw.githubusercontent.com/rockneters/blacklabel/main/port-sstp.sh"
-wget -O port-squid "https://raw.githubusercontent.com/rockneters/blacklabel/main/port-squid.sh"
-wget -O port-ws "https://raw.githubusercontent.com/rockneters/blacklabel/main/port-ws.sh"
-wget -O port-vless "https://raw.githubusercontent.com/rockneters/blacklabel/main/port-vless.sh"
-wget -O wbmn "https://raw.githubusercontent.com/rockneters/blacklabel/main/webmin.sh"
-wget -O xp "https://raw.githubusercontent.com/rockneters/blacklabel/main/xp.sh"
-wget -O bannermenu "https://raw.githubusercontent.com/rockneters/blacklabel/main/bannermenu"
-wget -O update "https://raw.githubusercontent.com/rockneters/blacklabel/main/update.sh"
-chmod +x add-host
-chmod +x menu
-chmod +x usernew
-chmod +x trial
-chmod +x hapus
-chmod +x member
-chmod +x delete
-chmod +x cek
-chmod +x restart
-chmod +x speedtest
-chmod +x info
-chmod +x about
-chmod +x autokill
-chmod +x tendang
-chmod +x ceklim
-chmod +x ram
-chmod +x renew
-chmod +x clear-log
-chmod +x change-port
-chmod +x port-ovpn
-chmod +x port-ssl
-chmod +x port-wg
-chmod +x port-sstp
-chmod +x port-tr
-chmod +x port-squid
-chmod +x port-ws
-chmod +x port-vless
-chmod +x wbmn
-chmod +x xp
-chmod +x bannermenu
-chmod +x update
-echo "0 0 * * * root clear-log && reboot" >> /etc/crontab
-echo "0 0 * * * root xp" >> /etc/crontab
-# remove unnecessary files
-cd
-apt autoclean -y
-apt -y remove --purge unscd
-apt-get -y --purge remove samba*;
-apt-get -y --purge remove apache2*;
-apt-get -y --purge remove bind9*;
-apt-get -y remove sendmail*
-apt autoremove -y
+echo "0 5 * * * root clear-log && reboot" >> /etc/crontab
+
 # finishing
 cd
 chown -R www-data:www-data /home/vps/public_html
@@ -306,24 +268,20 @@ chown -R www-data:www-data /home/vps/public_html
 /etc/init.d/ssh restart
 /etc/init.d/dropbear restart
 /etc/init.d/fail2ban restart
+/etc/init.d/webmin restart
 /etc/init.d/stunnel4 restart
 /etc/init.d/vnstat restart
 /etc/init.d/squid restart
 screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7100 --max-clients 500
 screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7200 --max-clients 500
 screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7300 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7400 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7500 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7600 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7700 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7800 --max-clients 500
-screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7900 --max-clients 500
 
 history -c
 echo "unset HISTFILE" >> /etc/profile
 
 cd
 rm -f /root/ssh-vpn.sh
+
 # finihsing
 clear
 neofetch
